@@ -15,7 +15,11 @@ def open_gpuz(path = "GPU-Z Sensor Log2.txt"):
     sensors = {item: [] for item in index}
     for line in fh:
         row = line.split(',')
-        if "Date" in line or line.strip() == "": # TODO: make pause visible
+        if line.strip() == "":
+            continue
+        elif "Date" in line: # made pause visible
+            for s in index[1:]:
+                sensors[s][-1] = 0
             continue
         for i in range(len(index)):
             if row[i].strip() == "-":
