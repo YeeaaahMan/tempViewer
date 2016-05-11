@@ -7,7 +7,7 @@ def extract(file_path):
     """
     if zipfile.is_zipfile(file_path):
         Z = zipfile.ZipFile(file_path, 'r')
-        clear_temp()
+        #clear_temp()
         Z.extractall('temp')
         file_list = Z.namelist()
         Z.close()
