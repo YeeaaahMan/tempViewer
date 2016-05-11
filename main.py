@@ -35,20 +35,10 @@ def icon():
     "yddWTgRCD6ZblTAtCOqxotxv4/vXFy+/15+8/wG3EtXVnG5odAAAAABJRU5ErkJggg=="
     )
 
-def msg(s, panel):
-    pass
-
-def spl1t_proc_name(text):
-    a = text.split(u" ")
-    result = []
-    for i in range(0,5,2):
-        result.append(u" ".join(a[i:i+2]))
-    return u"\n".join(result)
-
 class MainFrame ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.0a", pos = wx.DefaultPosition, size = wx.Size( 1260,800 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.1", pos = wx.DefaultPosition, size = wx.Size( 1260,1000 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         self.SetIcon(icon().GetIcon())
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
@@ -56,6 +46,8 @@ class MainFrame ( wx.Frame ):
         bSizerMain = wx.BoxSizer( wx.VERTICAL )
 
         self.m_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        drop_target = FileDropTarget(self.m_panel) # adding DropTarget properties
+        self.m_panel.SetDropTarget(drop_target) #
         bSizerPanel = wx.BoxSizer( wx.VERTICAL )
 
         self.m_auiNB = wx.aui.AuiNotebook( self.m_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.aui.AUI_NB_DEFAULT_STYLE|wx.NO_BORDER )
@@ -91,6 +83,9 @@ class MainFrame ( wx.Frame ):
     def __del__( self ):
         pass
 
+    def msg(self, s, panel):
+        pass
+
 
     # Virtual event handlers, overide them in your derived class
     def openFile( self, event ):
@@ -109,13 +104,8 @@ class MainFrame ( wx.Frame ):
 
         File_Path = openFileDialog.GetPath()
 
-        if File_Path[-3:] == "zip":
-            #print "ZIP"
-            File_List = unzip.extract(File_Path)
-            for item in File_List:
-                self.choosePanel(item)
-        else:
-            self.choosePanel(File_Path)
+        unzip.clear_temp()
+        self.choosePanel(File_Path)
 
 
     def choosePanel(self, path):
@@ -126,9 +116,30 @@ class MainFrame ( wx.Frame ):
         elif File_Name[-3:] == "txt":
             new_page = GPUzPanel(myApp.main_frame.m_auiNB, file_path = path)
             myApp.main_frame.m_auiNB.AddPage(new_page, File_Name, select=True)
+        elif File_Name[-3:] == "zip":
+            File_List = unzip.extract(path)
+            for item in File_List:
+                self.choosePanel(item)
         else:
             pass
 
+
+class FileDropTarget(wx.FileDropTarget):
+    """ This object implements Drop Target functionality for Files """
+    def __init__(self, obj):
+        """ Initialize the Drop Target, passing in the Object Reference to
+          indicate what should receive the dropped files """
+        # Initialize the wxFileDropTarget Object
+        wx.FileDropTarget.__init__(self)
+        # Store the Object Reference for dropped files
+        self.obj = obj
+
+    def OnDropFiles(self, x, y, filenames):
+        """ Implement File Drop """
+        unzip.clear_temp()
+        for item in filenames:
+            myApp.main_frame.choosePanel(item)
+            #print item
 
 class GPUzPanel ( wx.Panel ):
 
@@ -151,7 +162,7 @@ class GPUzPanel ( wx.Panel ):
                 if dimension in item:
                     Y = self.S["sensors"][item]
                     Y[0] = 0
-                    self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(1200, 230), fontsize=6,  messenger = msg)
+                    self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(1200, 230), fontsize=6,  messenger = myApp.main_frame.msg)
                     self.graph_panel.plot( self.S["sensors"]["Date"], Y, use_dates=True, title= item)
                     bSizerList.Add( self.graph_panel, 0, wx.ALL, 5 )
 
@@ -199,10 +210,10 @@ class CoreTempPanel ( wx.Panel ):
         self.m_staticText11 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"Processor:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText11.Wrap( -1 )
         sbSizerInfo.Add( self.m_staticText11, 0, wx.RIGHT|wx.LEFT, 5 )
-        self.m_hyperlink11 = wx.HyperlinkCtrl( sbSizerInfo.GetStaticBox(), wx.ID_ANY, spl1t_proc_name(self.S["info"][u"Processor:"]), u"https://www.google.by/search?q={0} cpu world".format(self.S["info"][u"Processor:"]), wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
+        self.m_hyperlink11 = wx.HyperlinkCtrl( sbSizerInfo.GetStaticBox(), wx.ID_ANY, self.spl1t_proc_name(self.S["info"][u"Processor:"]), u"https://www.google.by/search?q={0} cpu world".format(self.S["info"][u"Processor:"]), wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
         sbSizerInfo.Add( self.m_hyperlink11, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
 
-        # Platform:,LGA 775 (Socket T)
+        # Platform:
         self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"{0}\n{1}".format(u"Platform:", self.S["info"][u"Platform:"]), wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText1.Wrap( -1 )
         sbSizerInfo.Add( self.m_staticText1, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
@@ -245,7 +256,7 @@ class CoreTempPanel ( wx.Panel ):
         for core in self.S["core"]:
             Y = self.S["sensors"][core][u'Temp. (\xb0)']
             Y[0] = 0
-            self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(500, 250), fontsize=6,  messenger = msg)
+            self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(500, 250), fontsize=6,  messenger = myApp.main_frame.msg)
             self.graph_panel.plot( self.S["Time"], Y, use_dates=True, title= core + ' '+ u'Temp. (\xb0)')
             bSizerHor.Add( self.graph_panel, 0, wx.ALL, 5 )
         bSizerList.Add( bSizerHor, 0, wx.EXPAND, 5 )
@@ -254,7 +265,7 @@ class CoreTempPanel ( wx.Panel ):
         for core in self.S["core"]:
             Y = self.S["sensors"][core][u'Core load (%)']
             Y[0] = 0
-            self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(500, 250), fontsize=6, messenger = msg)
+            self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(500, 250), fontsize=6, messenger = myApp.main_frame.msg)
             self.graph_panel.plot( self.S["Time"], Y, use_dates=True, title= core + ' '+ u'Core load (%)')
             bSizerHor.Add( self.graph_panel, 0, wx.ALL, 5 )
         bSizerList.Add( bSizerHor, 0, wx.EXPAND, 5 )
@@ -263,7 +274,7 @@ class CoreTempPanel ( wx.Panel ):
         for core in self.S["core"]:
             Y = self.S["sensors"][core][u'Core speed (MHz)']
             Y[0] = 0
-            self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(500, 250), fontsize=6, messenger = msg)
+            self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(500, 250), fontsize=6, messenger = myApp.main_frame.msg)
             self.graph_panel.plot( self.S["Time"], Y, use_dates=True, title= core + ' '+ u'Core speed (MHz)')
             bSizerHor.Add( self.graph_panel, 0, wx.ALL, 5 )
         bSizerList.Add( bSizerHor, 0, wx.EXPAND, 5 )
@@ -286,6 +297,13 @@ class CoreTempPanel ( wx.Panel ):
 
         self.SetSizer( bSizerMain )
         self.Layout()
+
+    def spl1t_proc_name(self, text):
+        a = text.split(u" ")
+        result = []
+        for i in range(0,5,2):
+            result.append(u" ".join(a[i:i+2]))
+        return u"\n".join(result)
 
     def __del__( self ):
         pass
