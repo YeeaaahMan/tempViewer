@@ -32,8 +32,6 @@ def open_gpuz(path = "GPU-Z Sensor Log2.txt"):
                 sensors[index[i]].append( int(row[i]) )
             elif u"MB" in index[i]:
                 sensors[index[i]].append( int(row[i]) )
-            elif u'%' in index[i] and u'TDP' not in index[i]:
-                sensors[index[i]].append( int(row[i]) )
             else:
                 sensors[index[i]].append( float(row[i]) )
     result["sensors"] = sensors
