@@ -38,7 +38,7 @@ def icon():
 class MainFrame ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.1", pos = wx.DefaultPosition, size = wx.Size( 1260,1000 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.1a", pos = wx.DefaultPosition, size = wx.Size( 1260,1000 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         self.SetIcon(icon().GetIcon())
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
@@ -162,8 +162,12 @@ class GPUzPanel ( wx.Panel ):
                 if dimension in item:
                     Y = self.S["sensors"][item]
                     Y[0] = 0
+                    if dimension == u'\xb0C':
+                        Title = u"{0};   max T = {1}\xb0C".format(item, str(max(Y)) )
+                    else:
+                        Title = item
                     self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(1200, 230), fontsize=6,  messenger = myApp.main_frame.msg)
-                    self.graph_panel.plot( self.S["sensors"]["Date"], Y, use_dates=True, title= item)
+                    self.graph_panel.plot( self.S["sensors"]["Date"], Y, use_dates=True, title= Title )
                     bSizerList.Add( self.graph_panel, 0, wx.ALL, 5 )
 
         self.m_scrolledWindow1.SetSizer( bSizerList )
@@ -227,6 +231,17 @@ class CoreTempPanel ( wx.Panel ):
         self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"{0} {1}".format(u"Lithography:", self.S["info"][u"Lithography:"]), wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText1.Wrap( -1 )
         sbSizerInfo.Add( self.m_staticText1, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+
+        sbSizerInfo.AddSpacer( ( 0, 20), 1, 0, 5 )
+
+        self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"Max temperature:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText1.Wrap( -1 )
+        sbSizerInfo.Add( self.m_staticText1, 0, wx.ALL, 5 )
+
+        for core in self.S["core"]:
+            self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"{0} T = {1}\xb0C".format(core, max(self.S["sensors"][core][u'Temp. (\xb0)'])), wx.DefaultPosition, wx.DefaultSize, 0 )
+            self.m_staticText1.Wrap( -1 )
+            sbSizerInfo.Add( self.m_staticText1, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
 
         sbSizerInfo.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
 
