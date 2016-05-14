@@ -3,7 +3,7 @@ import wx
 import wx.xrc
 import wx.aui
 import wxmplot
-import gpuz, coretemp, unzip
+import gpuz, coretemp, unzip, sys
 from wx.lib.embeddedimage import PyEmbeddedImage
 
 def icon():
@@ -38,7 +38,7 @@ def icon():
 class MainFrame ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.1b", pos = wx.DefaultPosition, size = wx.Size( 1260,1000 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.1c", pos = wx.DefaultPosition, size = wx.Size( 1260,1000 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         self.SetIcon(icon().GetIcon())
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
@@ -153,10 +153,6 @@ class GPUzPanel ( wx.Panel ):
         self.m_scrolledWindow1.SetScrollRate( 5, 5 )
         bSizerList = wx.BoxSizer( wx.VERTICAL )
 
-        """
-        self.example_button = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"GPUZs", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizerList.Add( self.example_button, 0, wx.ALL, 5 )
-        """
         for dimension in [u'\xb0C', u'GPU Load [%]', u'MHz', u'RPM']:
             for item in self.S["index"][1:]:
                 if dimension in item:
@@ -192,19 +188,6 @@ class CoreTempPanel ( wx.Panel ):
 
         sbSizerInfo = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Info" ), wx.VERTICAL )
 
-        """for item in sorted(self.S["info"].keys()):
-            if item != u"Processor:":
-                self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"{0} {1}".format(item, self.S["info"][item]), wx.DefaultPosition, wx.DefaultSize, 0 )
-                self.m_staticText1.Wrap( -1 )
-                sbSizerInfo.Add( self.m_staticText1, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 10 )
-            else:
-                self.m_staticText11 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, item, wx.DefaultPosition, wx.DefaultSize, 0 )
-                self.m_staticText11.Wrap( -1 )
-                sbSizerInfo.Add( self.m_staticText11, 0, wx.RIGHT|wx.LEFT, 10 )
-
-                self.m_hyperlink11 = wx.HyperlinkCtrl( sbSizerInfo.GetStaticBox(), wx.ID_ANY, self.S["info"][item], u"https://www.google.by/search?q={0} cpu world".format(self.S["info"][item]), wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
-                sbSizerInfo.Add( self.m_hyperlink11, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 10 )
-        """
         # CPUID:
         self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"{0} {1}".format(u"CPUID:", self.S["info"][u"CPUID:"]), wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText1.Wrap( -1 )
@@ -332,7 +315,6 @@ class myApp(wx.App):
     def OnInit(self):
         self.main_frame = MainFrame(parent=None)
         self.main_frame.Show()
-        #self.settings = MyFrame2(parent=None)
         self.SetTopWindow(self.main_frame)
         return True
 
@@ -340,5 +322,11 @@ class myApp(wx.App):
 if __name__ == '__main__':
     # (1) Text redirection starts here
     myApp = myApp(redirect=True)
-    # (2) The main event loop is entered here
+    # Opening reports dropped on exe-file.
+    unzip.clear_temp()
+    arg_list=sys.argv
+    if len(arg_list) > 1:
+            for item in arg_list[1:]:
+                #print item
+                myApp.main_frame.choosePanel(item)
     myApp.MainLoop()
