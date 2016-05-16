@@ -5,6 +5,7 @@ import wx.aui
 import wxmplot
 import gpuz, coretemp, unzip, sys
 from wx.lib.embeddedimage import PyEmbeddedImage
+import gc
 
 def icon():
     return PyEmbeddedImage(
@@ -38,7 +39,7 @@ def icon():
 class MainFrame ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.1c", pos = wx.DefaultPosition, size = wx.Size( 1260,1000 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.1d", pos = wx.DefaultPosition, size = wx.Size( 1260,1000 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         self.SetIcon(icon().GetIcon())
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
@@ -55,9 +56,6 @@ class MainFrame ( wx.Frame ):
         bSizerPanel.Add( self.m_auiNB, 1, wx.EXPAND|wx.ALL, 5 )
 
         bSizerLower = wx.BoxSizer( wx.HORIZONTAL )
-
-        #self.openFile_button = wx.Button( self.m_panel, wx.ID_ANY, u"Open File", wx.DefaultPosition, wx.DefaultSize, 0 )
-        #bSizerLower.Add( self.openFile_button, 0, wx.ALL, 5 )
 
         self.chooseFile_button = wx.Button(self.m_panel, wx.ID_ANY, u"Choose file", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizerLower.Add( self.chooseFile_button, 0, wx.ALL, 5 )
@@ -77,7 +75,6 @@ class MainFrame ( wx.Frame ):
         self.Centre( wx.BOTH )
 
         # Connect Events
-        #self.openFile_button.Bind( wx.EVT_BUTTON, self.openFile )
         self.chooseFile_button.Bind(wx.EVT_BUTTON, self.chooseFile)
 
     def __del__( self ):
@@ -88,12 +85,6 @@ class MainFrame ( wx.Frame ):
 
 
     # Virtual event handlers, overide them in your derived class
-    def openFile( self, event ):
-        new_page = CoreTempPanel(myApp.main_frame.m_auiNB)
-        myApp.main_frame.m_auiNB.AddPage(new_page, u"CoreTemp")
-        new_page = GPUzPanel(myApp.main_frame.m_auiNB)
-        myApp.main_frame.m_auiNB.AddPage(new_page, u"GPU-Z")
-
     def chooseFile(self, event):
 
         openFileDialog = wx.FileDialog(self, "Open CoreTemp/GPU-Z log-file or ZIP-archive", "", "",
@@ -146,6 +137,7 @@ class GPUzPanel ( wx.Panel ):
     def __init__( self, parent , file_path="GPU-Z Sensor Log.txt"):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 500,300 ), style = wx.TAB_TRAVERSAL )
         self.S = gpuz.open_gpuz(file_path)
+        self.graph_panel = {}
 
         bSizerMain = wx.BoxSizer( wx.VERTICAL )
 
@@ -162,9 +154,9 @@ class GPUzPanel ( wx.Panel ):
                         Title = u"{0};   max T = {1}\xb0C".format(item, str(max(Y)) )
                     else:
                         Title = item
-                    self.graph_panel = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(1200, 230), fontsize=6,  messenger = myApp.main_frame.msg)
-                    self.graph_panel.plot( self.S["sensors"]["Date"], Y, use_dates=True, title= Title )
-                    bSizerList.Add( self.graph_panel, 0, wx.ALL, 5 )
+                    self.graph_panel[item] = wxmplot.PlotPanel(self.m_scrolledWindow1, size=(1200, 230), fontsize=6,  messenger = myApp.main_frame.msg)
+                    self.graph_panel[item].plot( self.S["sensors"]["Date"], Y, use_dates=True, title= Title )
+                    bSizerList.Add( self.graph_panel[item], 0, wx.ALL, 5 )
 
         self.m_scrolledWindow1.SetSizer( bSizerList )
         self.m_scrolledWindow1.Layout()
@@ -176,7 +168,7 @@ class GPUzPanel ( wx.Panel ):
         self.Layout()
 
     def __del__( self ):
-        pass
+        gc.collect()
 
 class CoreTempPanel ( wx.Panel ):
 
@@ -276,13 +268,6 @@ class CoreTempPanel ( wx.Panel ):
             self.graph_panel.plot( self.S["Time"], Y, use_dates=True, title= core + ' '+ u'Core speed (MHz)')
             bSizerHor.Add( self.graph_panel, 0, wx.ALL, 5 )
         bSizerList.Add( bSizerHor, 0, wx.EXPAND, 5 )
-        """
-        self.example_button = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"CoreTempS", wx.DefaultPosition, wx.Size( -1,300 ), 0 )
-        bSizerList.Add( self.example_button, 0, wx.ALL, 5 )
-
-        self.example_button1 = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( -1,300 ), 0 )
-        bSizerList.Add( self.example_button1, 0, wx.ALL, 5 )
-        """
 
         self.m_scrolledWindow1.SetSizer( bSizerList )
         self.m_scrolledWindow1.Layout()
@@ -304,7 +289,7 @@ class CoreTempPanel ( wx.Panel ):
         return u"\n".join(result)
 
     def __del__( self ):
-        pass
+        gc.collect()
 
 
 class myApp(wx.App):

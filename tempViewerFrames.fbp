@@ -241,7 +241,7 @@
                                     <event name="OnAuiNotebookEndDrag"></event>
                                     <event name="OnAuiNotebookPageChanged"></event>
                                     <event name="OnAuiNotebookPageChanging"></event>
-                                    <event name="OnAuiNotebookPageClose"></event>
+                                    <event name="OnAuiNotebookPageClose">pageClosed</event>
                                     <event name="OnChar"></event>
                                     <event name="OnEnterWindow"></event>
                                     <event name="OnEraseBackground"></event>
@@ -441,7 +441,7 @@
             <property name="window_style">wxTAB_TRAVERSAL</property>
             <event name="OnAuiFindManager"></event>
             <event name="OnAuiPaneButton"></event>
-            <event name="OnAuiPaneClose"></event>
+            <event name="OnAuiPaneClose">auiClose</event>
             <event name="OnAuiPaneMaximize"></event>
             <event name="OnAuiPaneRestore"></event>
             <event name="OnAuiRender"></event>
