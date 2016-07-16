@@ -207,7 +207,7 @@ class CoreTempPanel ( wx.Panel ):
         self.m_staticText1.Wrap( -1 )
         sbSizerInfo.Add( self.m_staticText1, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
 
-        sbSizerInfo.AddSpacer( ( 0, 20), 1, 0, 5 )
+        sbSizerInfo.AddSpacer( ( 0, 20), 0, 0, 5 )
 
         self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"Max temperature:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText1.Wrap( -1 )
@@ -217,6 +217,8 @@ class CoreTempPanel ( wx.Panel ):
             self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"{0} T = {1}\xb0C".format(core, max(self.S["sensors"][core][u'Temp. (\xb0)'])), wx.DefaultPosition, wx.DefaultSize, 0 )
             self.m_staticText1.Wrap( -1 )
             sbSizerInfo.Add( self.m_staticText1, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+
+        sbSizerInfo.AddSpacer( ( 0, 20), 0, 0, 5 )
 
         self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"Max frequency:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText1.Wrap( -1 )
