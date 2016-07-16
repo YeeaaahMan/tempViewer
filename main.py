@@ -39,7 +39,7 @@ def icon():
 class MainFrame ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.1d", pos = wx.DefaultPosition, size = wx.Size( 1260,1000 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"tempViewer v1.1e", pos = wx.DefaultPosition, size = wx.Size( 1260,1000 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         self.SetIcon(icon().GetIcon())
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
@@ -172,7 +172,7 @@ class GPUzPanel ( wx.Panel ):
 
 class CoreTempPanel ( wx.Panel ):
 
-    def __init__( self, parent, file_path="CT-Log 2016-04-02 01-15-54.csv"):
+    def __init__( self, parent, file_path):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 500,-1 ), style = wx.TAB_TRAVERSAL )
         self.S = coretemp.open_coretemp(file_path)
 
@@ -216,6 +216,23 @@ class CoreTempPanel ( wx.Panel ):
         for core in self.S["core"]:
             self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"{0} T = {1}\xb0C".format(core, max(self.S["sensors"][core][u'Temp. (\xb0)'])), wx.DefaultPosition, wx.DefaultSize, 0 )
             self.m_staticText1.Wrap( -1 )
+            sbSizerInfo.Add( self.m_staticText1, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+
+        self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"Max frequency:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText1.Wrap( -1 )
+        sbSizerInfo.Add( self.m_staticText1, 0, wx.ALL, 5 )
+
+        for core in self.S["core"]:
+            self.steps = {}
+            for freq in sorted(self.S["sensors"][core][u"Core speed (MHz)"]):
+                self.steps[float(freq)] = self.steps.get(float(freq), 0) + 1
+            self.m_staticText1 = wx.StaticText( sbSizerInfo.GetStaticBox(), wx.ID_ANY, u"{0} F = {1} MHz".format(core, max(self.steps.keys())), wx.DefaultPosition, wx.DefaultSize, 0 )
+            self.m_staticText1.Wrap( -1 )
+            summ = sum([self.steps[i] for i in self.steps.keys()])
+            A = ''
+            for i in sorted(self.steps.keys()):
+                A = A + u"{0:>8.2f} MHz: {1:>7.2%}\n".format(i, 1.*self.steps[i]/summ)
+            self.m_staticText1.SetToolTipString( A )
             sbSizerInfo.Add( self.m_staticText1, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
 
         sbSizerInfo.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )

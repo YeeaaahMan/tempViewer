@@ -49,6 +49,7 @@ def open_gpuz(path = "GPU-Z Sensor Log2.txt"):
 
 def gpu_datetime(s):
     """s= '2016-02-27 08:27:24'"""
+    # date_object = datetime.strptime('Jun 1 2005  1:33PM', '%b %d %Y %I:%M%p')
     s = s.strip().split(' ')
     d = []
     for x in s[0].split('-'):
